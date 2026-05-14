@@ -54,9 +54,7 @@ export default function NuevoPedidoPage() {
 
   function agregarProducto(producto: Producto) {
     setItems((prev) => {
-      const existe = prev.find(
-        (item) => item.producto_id === producto.id
-      );
+      const existe = prev.find((item) => item.producto_id === producto.id);
 
       // Si ya existe, aumentar cantidad
       if (existe) {
@@ -66,7 +64,7 @@ export default function NuevoPedidoPage() {
                 ...item,
                 cantidad: item.cantidad + 1,
               }
-            : item
+            : item,
         );
       }
 
@@ -98,17 +96,13 @@ export default function NuevoPedidoPage() {
 
     setItems((prev) =>
       prev.map((item) =>
-        item.producto_id === productoId
-          ? { ...item, cantidad }
-          : item
-      )
+        item.producto_id === productoId ? { ...item, cantidad } : item,
+      ),
     );
   }
 
   function eliminarItem(productoId: number) {
-    setItems((prev) =>
-      prev.filter((item) => item.producto_id !== productoId)
-    );
+    setItems((prev) => prev.filter((item) => item.producto_id !== productoId));
   }
 
   async function crearPedido() {
@@ -145,14 +139,10 @@ export default function NuevoPedidoPage() {
         usuario_id: user.id,
         usuario_email: user.email,
         usuario_nombre: nombreUsuario,
-
         sucursal,
         estado: "pendiente",
-
         prioridad_alta: prioridadAlta,
-        motivo_prioridad: prioridadAlta
-          ? motivoPrioridad
-          : null,
+        motivo_prioridad: prioridadAlta ? motivoPrioridad : null,
       })
       .select()
       .single();
@@ -181,6 +171,26 @@ export default function NuevoPedidoPage() {
       return;
     }
 
+    // =========================
+    // 📩 ENVIAR EMAIL AQUÍ
+    // =========================
+    try {
+      await fetch("/api/notificar-pedido", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pedidoId: pedido.id,
+          sucursal,
+          usuario: nombreUsuario,
+          prioridadAlta,
+        }),
+      });
+    } catch (e) {
+      console.log("Error enviando correo", e);
+    }
+
     alert("Pedido creado correctamente");
 
     setItems([]);
@@ -190,9 +200,7 @@ export default function NuevoPedidoPage() {
     setProductos([]);
   }
 
-  function handleKeyDown(
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (productos.length === 0) return;
 
     // Flecha abajo
@@ -200,7 +208,7 @@ export default function NuevoPedidoPage() {
       e.preventDefault();
 
       setSelectedIndex((prev) =>
-        prev < productos.length - 1 ? prev + 1 : prev
+        prev < productos.length - 1 ? prev + 1 : prev,
       );
     }
 
@@ -225,9 +233,7 @@ export default function NuevoPedidoPage() {
 
   return (
     <div className="bg-white min-h-screen p-6">
-      <h1 className="text-2xl font-bold mb-4 text-gray-900">
-        Crear pedido
-      </h1>
+      <h1 className="text-2xl font-bold mb-4 text-gray-900">Crear pedido</h1>
 
       {/* SUCURSAL */}
       <select
@@ -259,19 +265,11 @@ export default function NuevoPedidoPage() {
                 key={p.id}
                 onClick={() => agregarProducto(p)}
                 className={`p-3 cursor-pointer transition-all border-b border-gray-100 last:border-b-0
-                ${
-                  selectedIndex === index
-                    ? "bg-blue-50"
-                    : "hover:bg-gray-50"
-                }`}
+                ${selectedIndex === index ? "bg-blue-50" : "hover:bg-gray-50"}`}
               >
-                <div className="text-gray-900 font-semibold">
-                  {p.codigo}
-                </div>
+                <div className="text-gray-900 font-semibold">{p.codigo}</div>
 
-                <div className="text-gray-600 text-sm">
-                  {p.nombre}
-                </div>
+                <div className="text-gray-600 text-sm">{p.nombre}</div>
               </div>
             ))}
           </div>
@@ -301,18 +299,13 @@ export default function NuevoPedidoPage() {
                 min={1}
                 value={item.cantidad}
                 onChange={(e) =>
-                  cambiarCantidad(
-                    item.producto_id,
-                    Number(e.target.value)
-                  )
+                  cambiarCantidad(item.producto_id, Number(e.target.value))
                 }
                 className="border border-gray-300 rounded-lg w-20 p-2 text-gray-900 bg-white"
               />
 
               <button
-                onClick={() =>
-                  eliminarItem(item.producto_id)
-                }
+                onClick={() => eliminarItem(item.producto_id)}
                 className="bg-red-500 hover:bg-red-600 transition-colors rounded-lg cursor-pointer text-white p-2"
               >
                 <Trash2 size={18} />
@@ -327,22 +320,16 @@ export default function NuevoPedidoPage() {
         <input
           type="checkbox"
           checked={prioridadAlta}
-          onChange={(e) =>
-            setPrioridadAlta(e.target.checked)
-          }
+          onChange={(e) => setPrioridadAlta(e.target.checked)}
         />
 
-        <label className="text-gray-700 font-medium">
-          Prioridad alta
-        </label>
+        <label className="text-gray-700 font-medium">Prioridad alta</label>
       </div>
 
       {prioridadAlta && (
         <textarea
           value={motivoPrioridad}
-          onChange={(e) =>
-            setMotivoPrioridad(e.target.value)
-          }
+          onChange={(e) => setMotivoPrioridad(e.target.value)}
           placeholder="Motivo de prioridad"
           className="border border-gray-300 rounded-xl p-3 w-full mb-4 text-gray-900 bg-white shadow-sm"
           rows={3}
