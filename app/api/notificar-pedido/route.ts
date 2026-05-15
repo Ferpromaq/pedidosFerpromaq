@@ -81,61 +81,83 @@ export async function POST(req: Request) {
       subject: `📦 Pedido #${pedidoId} - ${sucursal}`,
 
       html: `
-        <div style="
-          font-family: Arial, sans-serif;
-          background: #f4f7fb;
-          padding: 20px;
-        ">
-          <div style="
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            border-radius: 14px;
-            padding: 24px;
-            border: 1px solid #e5e7eb;
-          ">
-            <h2 style="
-              margin-top: 0;
-              color: #2563eb;
-            ">
-              📦 Nuevo pedido interno
-            </h2>
+  <div style="
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    padding: 20px;
+  ">
+    <div style="
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid #e5e7eb;
+    ">
+      <h2 style="
+        margin-top: 0;
+        color: #2563eb;
+      ">
+        📦 Nuevo pedido interno
+      </h2>
 
-            <p>
-              La sucursal
-              <strong>${sucursal}</strong>
-              ha generado un nuevo pedido.
-            </p>
+      <p>
+        La sucursal
+        <strong>${sucursal}</strong>
+        ha generado un nuevo pedido.
+      </p>
 
-            <div style="
-              margin-top: 20px;
-              padding: 16px;
-              background: #f9fafb;
-              border-radius: 10px;
-            ">
-              <p>
-                <strong>Pedido:</strong>
-                #${pedidoId}
-              </p>
+      <div style="
+        margin-top: 20px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 10px;
+      ">
+        <p>
+          <strong>Pedido:</strong>
+          #${pedidoId}
+        </p>
 
-              <p>
-                <strong>Solicitante:</strong>
-                ${usuario}
-              </p>
+        <p>
+          <strong>Solicitante:</strong>
+          ${usuario}
+        </p>
 
-              <p>
-                <strong>Sucursal:</strong>
-                ${sucursal}
-              </p>
+        <p>
+          <strong>Sucursal:</strong>
+          ${sucursal}
+        </p>
 
-              <p>
-                <strong>Prioridad:</strong>
-                ${prioridadAlta ? "⚠️ PRIORIDAD ALTA" : "Normal"}
-              </p>
-            </div>
-          </div>
-        </div>
-      `,
+        <p>
+          <strong>Prioridad:</strong>
+          ${prioridadAlta ? "⚠️ PRIORIDAD ALTA" : "Normal"}
+        </p>
+      </div>
+
+      <!-- BOTÓN -->
+      <div style="
+        margin-top: 30px;
+        text-align: center;
+      ">
+        <a
+          href="https://pedidos.ferpromaq.cl/dashboard/pedidos/${pedidoId}"
+          style="
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+          "
+        >
+          Ver pedido
+        </a>
+      </div>
+    </div>
+  </div>
+`,
     });
 
     // ==============================
