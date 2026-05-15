@@ -2,6 +2,9 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// ==============================
+// CORREOS POR SUCURSAL
+// ==============================
 const correosSucursales: Record<string, string[]> = {
   Picarte: ["jp.marin@ferpromaq.cl"],
 
@@ -10,14 +13,38 @@ const correosSucursales: Record<string, string[]> = {
   "Las Ánimas": ["jp.marin@ferpromaq.cl"],
 };
 
-// Correos adicionales SIEMPRE
+// ==============================
+// CORREOS ADICIONALES
+// ==============================
 const correosAdicionales = [
   "jp.marin@ferpromaq.cl",
-  // agrega más aquí después
 ];
 
+// ==============================
+// API
+// ==============================
 export async function POST(req: Request) {
   try {
+    // ==============================
+    // VALIDAR API KEY
+    // ==============================
+    if (!process.env.RESEND_API_KEY) {
+      console.error("Falta RESEND_API_KEY");
+
+      return Response.json(
+        {
+          ok: false,
+          error: "Falta RESEND_API_KEY",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    // ==============================
+    // BODY
+    // ==============================
     const body = await req.json();
 
     const {
@@ -27,71 +54,161 @@ export async function POST(req: Request) {
       prioridadAlta,
     } = body;
 
-    // Obtener correos de TODAS las otras sucursales
+    // ==============================
+    // OBTENER DESTINATARIOS
+    // ==============================
     const destinatarios = Object.entries(
       correosSucursales
     )
-      .filter(([nombreSucursal]) => nombreSucursal !== sucursal)
+      // NO enviar a la sucursal origen
+      .filter(
+        ([nombreSucursal]) =>
+          nombreSucursal !== sucursal
+      )
       .flatMap(([, correos]) => correos);
 
-    // Agregar correos adicionales
+    // ==============================
+    // COMBINAR + ELIMINAR DUPLICADOS
+    // ==============================
     const correosFinales = [
       ...destinatarios,
       ...correosAdicionales,
     ];
 
-    // Eliminar duplicados
-    const correosUnicos = [...new Set(correosFinales)];
+    const correosUnicos = [
+      ...new Set(correosFinales),
+    ];
 
-    await resend.emails.send({
-      from: "Ferpromaq Pedidos <onboarding@resend.dev>",
+    // ==============================
+    // DEBUG
+    // ==============================
+    console.log(
+      "Correos destinatarios:",
+      correosUnicos
+    );
 
-      to: correosUnicos,
+    // ==============================
+    // ENVIAR EMAIL
+    // ==============================
+    const response = await resend.emails.send({
+      from:
+        "Ferpromaq Pedidos <onboarding@resend.dev>",
 
-      subject: `Nuevo pedido #${pedidoId}`,
+      // IMPORTANTE:
+      // Durante pruebas usa SOLO tu correo
+      // Si quieres volver a múltiples:
+      // reemplaza por correosUnicos
+      to: "jp.marin@ferpromaq.cl",
+
+      subject: `📦 Pedido #${pedidoId} - ${sucursal}`,
 
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 10px;">
-          <h2 style="color:#2563eb;">
-            📦 Nuevo pedido creado
-          </h2>
+        <div style="
+          font-family: Arial, sans-serif;
+          background: #f4f7fb;
+          padding: 20px;
+        ">
+          <div style="
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+          ">
+            <h2 style="
+              margin-top: 0;
+              color: #2563eb;
+            ">
+              📦 Nuevo pedido interno
+            </h2>
 
-          <p>
-            <strong>Pedido:</strong>
-            #${pedidoId}
-          </p>
+            <p>
+              La sucursal
+              <strong>${sucursal}</strong>
+              ha generado un nuevo pedido.
+            </p>
 
-          <p>
-            <strong>Sucursal:</strong>
-            ${sucursal}
-          </p>
+            <div style="
+              margin-top: 20px;
+              padding: 16px;
+              background: #f9fafb;
+              border-radius: 10px;
+            ">
+              <p>
+                <strong>Pedido:</strong>
+                #${pedidoId}
+              </p>
 
-          <p>
-            <strong>Solicitante:</strong>
-            ${usuario}
-          </p>
+              <p>
+                <strong>Solicitante:</strong>
+                ${usuario}
+              </p>
 
-          <p>
-            <strong>Prioridad:</strong>
-            ${
-              prioridadAlta
-                ? "⚠️ PRIORIDAD ALTA"
-                : "Normal"
-            }
-          </p>
+              <p>
+                <strong>Sucursal:</strong>
+                ${sucursal}
+              </p>
+
+              <p>
+                <strong>Prioridad:</strong>
+                ${
+                  prioridadAlta
+                    ? "⚠️ PRIORIDAD ALTA"
+                    : "Normal"
+                }
+              </p>
+            </div>
+          </div>
         </div>
       `,
     });
 
+    // ==============================
+    // LOG RESPUESTA RESEND
+    // ==============================
+    console.log(
+      "RESPUESTA RESEND:",
+      response
+    );
+
+    // ==============================
+    // VALIDAR ERROR RESEND
+    // ==============================
+    if (response.error) {
+      console.error(
+        "ERROR RESEND:",
+        response.error
+      );
+
+      return Response.json(
+        {
+          ok: false,
+          error: response.error,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    // ==============================
+    // OK
+    // ==============================
     return Response.json({
       ok: true,
+      data: response.data,
     });
   } catch (error) {
-    console.error(error);
+    console.error(
+      "ERROR GENERAL EMAIL:",
+      error
+    );
 
     return Response.json(
       {
         ok: false,
+        error,
       },
       {
         status: 500,
