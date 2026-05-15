@@ -12,6 +12,7 @@ type Pedido = {
   created_at: string;
   leido: boolean;
   fecha_lectura: string | null;
+  usuario_nombre: string;
   prioridad_alta?: boolean;
   motivo_prioridad?: string | null;
   leido_por?: string | null;
@@ -246,7 +247,7 @@ export default function PedidosPage() {
 
                     {/* SOLICITANTE */}
                     <div className="flex items-center justify-center text-center break-all leading-tight">
-                      {info.pedido.usuario_email}
+                      {info.pedido.usuario_nombre}
                     </div>
 
                     {/* FECHA */}
@@ -324,7 +325,7 @@ export default function PedidosPage() {
 
                   <p className="text-zinc-700 break-all">
                     <span className="font-medium">Solicitante:</span>{" "}
-                    {preview.pedido.usuario_email}
+                    {preview.pedido.usuario_nombre}
                   </p>
 
                   <p className="text-zinc-500 text-xs">
