@@ -16,9 +16,7 @@ const correosSucursales: Record<string, string[]> = {
 // ==============================
 // CORREOS ADICIONALES
 // ==============================
-const correosAdicionales = [
-  "jp.marin@ferpromaq.cl",
-];
+const correosAdicionales = ["jp.marin@ferpromaq.cl"];
 
 // ==============================
 // API
@@ -38,7 +36,7 @@ export async function POST(req: Request) {
         },
         {
           status: 500,
-        }
+        },
       );
     }
 
@@ -47,58 +45,38 @@ export async function POST(req: Request) {
     // ==============================
     const body = await req.json();
 
-    const {
-      pedidoId,
-      sucursal,
-      usuario,
-      prioridadAlta,
-    } = body;
+    const { pedidoId, sucursal, usuario, prioridadAlta } = body;
 
     // ==============================
     // OBTENER DESTINATARIOS
     // ==============================
-    const destinatarios = Object.entries(
-      correosSucursales
-    )
+    const destinatarios = Object.entries(correosSucursales)
       // NO enviar a la sucursal origen
-      .filter(
-        ([nombreSucursal]) =>
-          nombreSucursal !== sucursal
-      )
+      .filter(([nombreSucursal]) => nombreSucursal !== sucursal)
       .flatMap(([, correos]) => correos);
 
     // ==============================
     // COMBINAR + ELIMINAR DUPLICADOS
     // ==============================
-    const correosFinales = [
-      ...destinatarios,
-      ...correosAdicionales,
-    ];
+    const correosFinales = [...destinatarios, ...correosAdicionales];
 
-    const correosUnicos = [
-      ...new Set(correosFinales),
-    ];
+    const correosUnicos = [...new Set(correosFinales)];
 
     // ==============================
     // DEBUG
     // ==============================
-    console.log(
-      "Correos destinatarios:",
-      correosUnicos
-    );
+    console.log("Correos destinatarios:", correosUnicos);
 
     // ==============================
     // ENVIAR EMAIL
     // ==============================
     const response = await resend.emails.send({
-      from:
-        "Ferpromaq Pedidos <onboarding@resend.dev>",
-
+      from: "Ferpromaq Pedidos <notificaciones@pedidos.ferpromaq.cl>",
       // IMPORTANTE:
       // Durante pruebas usa SOLO tu correo
       // Si quieres volver a múltiples:
       // reemplaza por correosUnicos
-      to: "jp.marin@ferpromaq.cl",
+      to: correosUnicos,
 
       subject: `📦 Pedido #${pedidoId} - ${sucursal}`,
 
@@ -152,11 +130,7 @@ export async function POST(req: Request) {
 
               <p>
                 <strong>Prioridad:</strong>
-                ${
-                  prioridadAlta
-                    ? "⚠️ PRIORIDAD ALTA"
-                    : "Normal"
-                }
+                ${prioridadAlta ? "⚠️ PRIORIDAD ALTA" : "Normal"}
               </p>
             </div>
           </div>
@@ -167,19 +141,13 @@ export async function POST(req: Request) {
     // ==============================
     // LOG RESPUESTA RESEND
     // ==============================
-    console.log(
-      "RESPUESTA RESEND:",
-      response
-    );
+    console.log("RESPUESTA RESEND:", response);
 
     // ==============================
     // VALIDAR ERROR RESEND
     // ==============================
     if (response.error) {
-      console.error(
-        "ERROR RESEND:",
-        response.error
-      );
+      console.error("ERROR RESEND:", response.error);
 
       return Response.json(
         {
@@ -188,7 +156,7 @@ export async function POST(req: Request) {
         },
         {
           status: 500,
-        }
+        },
       );
     }
 
@@ -200,10 +168,7 @@ export async function POST(req: Request) {
       data: response.data,
     });
   } catch (error) {
-    console.error(
-      "ERROR GENERAL EMAIL:",
-      error
-    );
+    console.error("ERROR GENERAL EMAIL:", error);
 
     return Response.json(
       {
@@ -212,7 +177,7 @@ export async function POST(req: Request) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }
