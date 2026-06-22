@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase";
+
+const supabase = createClient();
 import {
   ChevronDown,
   ChevronUp,
@@ -46,6 +49,27 @@ type SortField =
   | "created_at"
   | "leido";
 
+async function obtenerPedidos(): Promise<PedidoInfo[]> {
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select(
+      `
+      *,
+      pedido_items (*)
+    `,
+    )
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    throw new Error("Error cargando pedidos");
+  }
+
+  return data.map((pedido) => ({
+    pedido,
+    items: pedido.pedido_items || [],
+  }));
+}
+
 function formatFecha(fecha: string) {
   return new Date(fecha).toLocaleString("es-CL", {
     day: "2-digit",
@@ -56,12 +80,25 @@ function formatFecha(fecha: string) {
 }
 
 export default function PedidosPage() {
-  const [loading, setLoading] = useState(true);
-
-  const [pedidos, setPedidos] = useState<PedidoInfo[]>([]);
-
   const [pedidoSeleccionado, setPedidoSeleccionado] =
     useState<PedidoInfo | null>(null);
+
+  const { data: pedidos = [], isLoading: loading } = useQuery({
+    queryKey: ["pedidos"],
+    queryFn: obtenerPedidos,
+
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
+
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  useEffect(() => {
+    if (!pedidoSeleccionado && pedidos.length > 0) {
+      setPedidoSeleccionado(pedidos[0]);
+    }
+  }, [pedidos, pedidoSeleccionado]);
 
   // =========================
   // FILTROS ACTIVOS
@@ -84,46 +121,6 @@ export default function PedidosPage() {
   const [sortField, setSortField] = useState<SortField>("created_at");
 
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-
-  useEffect(() => {
-    async function cargarPedidos() {
-      setLoading(true);
-
-      const { data: pedidosData } = await supabase
-        .from("pedidos")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!pedidosData) {
-        setLoading(false);
-        return;
-      }
-
-      const pedidosConItems = await Promise.all(
-        pedidosData.map(async (pedido) => {
-          const { data: itemsData } = await supabase
-            .from("pedido_items")
-            .select("*")
-            .eq("pedido_id", pedido.id);
-
-          return {
-            pedido,
-            items: itemsData || [],
-          };
-        }),
-      );
-
-      setPedidos(pedidosConItems);
-
-      if (pedidosConItems.length > 0) {
-        setPedidoSeleccionado(pedidosConItems[0]);
-      }
-
-      setLoading(false);
-    }
-
-    cargarPedidos();
-  }, []);
 
   // =========================
   // ORDENAMIENTO
@@ -551,7 +548,7 @@ export default function PedidosPage() {
                       <AlertTriangle className="w-4 h-4 text-red-400 fill-white-400" />
 
                       {/* TOOLTIP */}
-                      <div className="absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap bg-zinc-900 text-white text-[10px] px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                      <div className="absolute left-1/2 -translate-x-1/2 -top-6 whitespace-nowrap bg-red-600 text-white text-[10px] px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
                         Prioridad alta
                       </div>
                     </div>

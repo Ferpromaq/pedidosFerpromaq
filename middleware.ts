@@ -1,28 +1,45 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request,
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: () => req.cookies.getAll(),
-        setAll: (cookies) => {
-          cookies.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+
+          response = NextResponse.next({
+            request,
           });
+
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
         },
       },
     }
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  return res;
+  if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  return response;
 }
 
 export const config = {

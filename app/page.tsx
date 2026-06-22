@@ -2,7 +2,9 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
+
+const supabase = createClient();
 
 export default function Home() {
   const router = useRouter();

@@ -3,6 +3,7 @@
 import { Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Producto = {
   id: number;
@@ -27,6 +28,8 @@ export default function NuevoPedidoPage() {
   const [motivoPrioridad, setMotivoPrioridad] = useState("");
 
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const queryClient = useQueryClient();
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -190,6 +193,10 @@ export default function NuevoPedidoPage() {
     } catch (e) {
       console.log("Error enviando correo", e);
     }
+
+    await queryClient.invalidateQueries({
+      queryKey: ["pedidos"],
+    });
 
     alert("Pedido creado correctamente");
 
