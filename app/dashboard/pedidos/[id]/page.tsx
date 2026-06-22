@@ -408,15 +408,28 @@ export default function PedidoDetallePage({
     );
   }
 
-  function autorizarEdicion() {
-    if (adminUser === "admin" && adminPass === "1234") {
+  async function autorizarEdicion() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("No autenticado");
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role === "administrador") {
       setPedido((prev) => (prev ? { ...prev, editable: true } : null));
       setShowAuth(false);
-      setAdminUser("");
-      setAdminPass("");
       alert("Autorización concedida");
     } else {
-      alert("Credenciales inválidas");
+      alert("No autorizado");
     }
   }
 
@@ -480,9 +493,6 @@ export default function PedidoDetallePage({
       </div>
     );
   }
-
-  const totalCantidad = items.reduce((a, i) => a + i.cantidad, 0);
-  const totalEnviado = items.reduce((a, i) => a + i.cantidad_enviada, 0);
 
   console.log(pedido.estado);
 

@@ -86,12 +86,10 @@ export default function PedidosPage() {
   const { data: pedidos = [], isLoading: loading } = useQuery({
     queryKey: ["pedidos"],
     queryFn: obtenerPedidos,
-
-    staleTime: 1000 * 60 * 10,
-    gcTime: 1000 * 60 * 30,
-
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    staleTime: 0, // ✅ siempre considera los datos desactualizados
+    gcTime: 1000 * 60 * 5, // ✅ limpia cache después de 5 minutos
+    refetchOnWindowFocus: true, // ✅ recarga al volver a la pestaña/ventana
+    refetchOnReconnect: true, // ✅ recarga al reconectar
   });
 
   useEffect(() => {
