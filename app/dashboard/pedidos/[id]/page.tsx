@@ -1,10 +1,12 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { createClient } from "@/lib/supabase";
+
+const supabase = createClient();
 
 type DocWithAutoTable = {
   lastAutoTable?: {

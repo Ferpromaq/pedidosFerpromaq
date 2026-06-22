@@ -2,9 +2,10 @@
 
 import { Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase";
 
+const supabase = createClient();
 type Producto = {
   id: number;
   nombre: string;
