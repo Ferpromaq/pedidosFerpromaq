@@ -70,18 +70,6 @@ export default function DashboardShell({
     };
   }, [router]);
 
-  async function cerrarSesion() {
-    await supabase.auth.signOut();
-    router.replace("/");
-  }
-
-  const linkBase =
-    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] transition";
-
-  const linkHover = "hover:bg-zinc-100 text-zinc-700";
-
-  const linkActive = "bg-blue-50 text-blue-600 font-medium";
-
   return (
     <Providers>
       <main className="h-screen bg-[#f5f7fb] overflow-hidden">

@@ -20,16 +20,11 @@ export default function Home() {
     setLoading(true);
     setError("");
 
-    console.log("➡️ LOGIN INICIADO");
-
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
-      console.log("📦 DATA:", data);
-      console.log("❌ ERROR:", error);
 
       if (error) {
         setError(error.message);
@@ -40,8 +35,6 @@ export default function Home() {
         setError("No se generó sesión");
         return;
       }
-
-      console.log("✅ LOGIN OK");
 
       // 🔥 IMPORTANTE: salir de loading ANTES del redirect
       setLoading(false);
@@ -81,9 +74,7 @@ export default function Home() {
             className="border border-zinc-300 rounded-lg px-4 py-3 text-black"
           />
 
-          {error && (
-            <p className="text-red-500 text-sm">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
             type="submit"
